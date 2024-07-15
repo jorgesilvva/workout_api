@@ -5,25 +5,29 @@ from workout_api.centro_treinamento.schemas import CentroTreinamentoAtleta
 
 from workout_api.contrib.schemas import BaseSchema, OutMixin
 
+from datetime import datetime
+from typing import Annotated
+from pydantic import UUID4, Field
+from workout_api.categorias.schemas import CategoriaOut
+from workout_api.centro_treinamento.schemas import CentroTreinamentoOut
+from workout_api.contrib.schemas import BaseSchema
 
-class Atleta(BaseSchema):
-    nome: Annotated[str, Field(description='Nome do atleta', example='Joao', max_length=50)]
-    cpf: Annotated[str, Field(description='CPF do atleta', example='12345678900', max_length=11)]
-    idade: Annotated[int, Field(description='Idade do atleta', example=25)]
-    peso: Annotated[PositiveFloat, Field(description='Peso do atleta', example=75.5)]
-    altura: Annotated[PositiveFloat, Field(description='Altura do atleta', example=1.70)]
-    sexo: Annotated[str, Field(description='Sexo do atleta', example='M', max_length=1)]
-    categoria: Annotated[CategoriaIn, Field(description='Categoria do atleta')]
-    centro_treinamento: Annotated[CentroTreinamentoAtleta, Field(description='Centro de treinamento do atleta')]
+class AtletaIn(BaseSchema):
+    nome: str = Field(..., description='Nome do atleta', max_length=50)
+    cpf: str = Field(..., description='CPF do atleta', max_length=14)
+    categoria: CategoriaOut
+    centro_treinamento: CentroTreinamentoOut
 
+class AtletaOut(AtletaIn):
+    id: UUID4 = Field(..., description='Identificador do atleta')
+    created_at: datetime = Field(..., description='Data e hora de criação')
 
-class AtletaIn(Atleta):
-    pass
-
-
-class AtletaOut(Atleta, OutMixin):
-    pass
+    @classmethod
+    def model_validate(cls, atleta: AtletaOut) -> AtletaOut:
+        return atleta
 
 class AtletaUpdate(BaseSchema):
-    nome: Annotated[Optional[str], Field(None, description='Nome do atleta', example='Joao', max_length=50)]
-    idade: Annotated[Optional[int], Field(None, description='Idade do atleta', example=25)]
+    nome: Annotated[Optional[str], Field(description='Nome do atleta', max_length=50)] = None
+    cpf: Annotated[Optional[str], Field(description='CPF do atleta', max_length=14)] = None
+    categoria: Annotated[Optional[CategoriaOut], Field(description='Categoria do atleta')]
+    centro_treinamento: Annotated[Optional[CentroTreinamentoOut], Field(description='Centro de treinamento do atleta')]
